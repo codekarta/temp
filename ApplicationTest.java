@@ -1,79 +1,80 @@
-import org.junit.*;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-import java.util.Arrays;
-import java.util.Collection;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(Parameterized.class)
-public class ApplicationTest {
+@DisplayName("Calculator Tests (JUnit 5)")
+class ApplicationTest {
 
-    private final double valueA;
-    private final double valueB;
-    private final double expectedResult;
     private Calculator calculator;
 
-    public CalculatorJunit4Test(double valueA, double valueB, double expectedResult) {
-        this.valueA = valueA;
-        this.valueB = valueB;
-        this.expectedResult = expectedResult;
+    @BeforeAll
+    static void setUpClass() {
+        System.out.println("Executing before the entire test class (JUnit 5).");
     }
 
-    // Parameters for the parameterized test
-    @Parameters
-    public static Collection<Object[]> testData() {
-        return Arrays.asList(new Object[][]{
-            {1.0, 1.0, 2.0},
-            {2.0, 3.0, 5.0}
-        });
+    @AfterAll
+    static void tearDownClass() {
+        System.out.println("Executing after the entire test class (JUnit 5).");
     }
 
-    // Rule for exception handling
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
-    @BeforeClass
-    public static void setUpClass() {
-        System.out.println("Executing before the entire test class (JUnit 4).");
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-        System.out.println("Executing after the entire test class (JUnit 4).");
-    }
-
-    @Before
-    public void setUp() {
-        System.out.println("Executing before each test method (JUnit 4).");
+    @BeforeEach
+    void setUp() {
+        System.out.println("Executing before each test method (JUnit 5).");
         calculator = new Calculator();
     }
 
-    @After
-    public void tearDown() {
-        System.out.println("Executing after each test method (JUnit 4).");
+    @AfterEach
+    void tearDown() {
+        System.out.println("Executing after each test method (JUnit 5).");
     }
 
     @Test
-    public void testAddition() {
-        calculator.add(valueA);
-        calculator.add(valueB);
-        assertEquals(expectedResult, calculator.getResult(), 0.0);
+    @DisplayName("Test for adding a single number")
+    void testSingleAddition() {
+        calculator.add(5);
+        assertEquals(5, calculator.getResult());
     }
 
-    // Exception handling with ExpectedException rule
+    // Grouped assertions
     @Test
-    public void testDivisionByZero_rule() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Cannot divide by zero");
-        calculator.divide(0);
+    @DisplayName("Test multiple assertions with assertAll")
+    void testMultipleAssertions() {
+        calculator.add(10);
+        assertAll("calculator",
+            () -> assertEquals(10, calculator.getResult(), "Addition is wrong"),
+            () -> assertTrue(calculator.isPositive(calculator.getResult()), "Result should be positive")
+        );
+    }
+
+    // Exception handling with assertThrows
+    @Test
+    @DisplayName("Test for division by zero using assertThrows")
+    void testDivisionByZero_assertThrows() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            calculator.divide(0);
+        });
+        assertEquals("Cannot divide by zero", exception.getMessage());
+    }
+
+    // Parameterized test using CsvSource
+    @ParameterizedTest(name = "Addition with {0} and {1} should be {2}")
+    @CsvSource({
+        "1.0, 1.0, 2.0",
+        "2.0, 3.0, 5.0"
+    })
+    @DisplayName("Parameterized test for addition")
+    void testAdditionFromCsvSource(double a, double b, double expected) {
+        calculator.add(a);
+        calculator.add(b);
+        assertEquals(expected, calculator.getResult());
     }
 
     // Ignored test
-    @Ignore("This test is ignored for now")
+    @Disabled("This test is disabled for now")
     @Test
-    public void testIgnoredMethod() {
+    @DisplayName("Test that is currently disabled")
+    void testDisabledMethod() {
         fail("This test should not be run.");
     }
 }
