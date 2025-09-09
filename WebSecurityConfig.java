@@ -1,13 +1,14 @@
     @Configuration
     @EnableWebSecurity
-    public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-        @Override
-        protected void configure(HttpSecurity http) throws Exception {
+    public class WebSecurityConfig {
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
             http
-                .authorizeRequests()
-                .antMatchers("/public/**").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .formLogin();
+                .authorizeHttpRequests(authorize -> authorize
+                    .requestMatchers("/public/**").permitAll()
+                    .anyRequest().authenticated()
+                )
+                .formLogin(Customizer.withDefaults()); // Or configure explicitly
+            return http.build();
         }
     }
